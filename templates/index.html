@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Олечка,люблю тебя❤️</title>
+    <style>
+        body {
+            background: linear-gradient(135deg, #fff5f7 0%, #ffe3ec 100%);
+            font-family: 'Segoe UI', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            color: #4a4a4a;
+        }
+        .card {
+            background: white;
+            padding: 2rem;
+            border-radius: 30px;
+            box-shadow: 0 15px 35px rgba(255, 145, 175, 0.3);
+            text-align: center;
+            width: 90%;
+            max-width: 400px;
+        }
+        h1 { color: #ff758f; font-size: 1.4rem; margin-bottom: 1rem; }
+        
+        /* Стиль для умной строки */
+        .full-string {
+            font-style: italic;
+            color: #ff4d6d;
+            margin-bottom: 20px;
+            font-size: 1rem;
+            line-height: 1.4;
+        }
+
+        .stat {
+            background: #fff0f3;
+            margin: 8px 0;
+            padding: 10px;
+            border-radius: 12px;
+        }
+        .label { font-size: 0.7rem; color: #a0a0a0; display: block; text-transform: uppercase; }
+        .value { font-size: 1.2rem; font-weight: bold; color: #ff4d6d; }
+        .heart { font-size: 2rem; color: #ff4d6d; margin-top: 1rem; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>Мы вместе уже:</h1>
+        
+        <div id="smart-string" class="full-string">Загрузка...</div>
+
+        <div class="stat"><span class="label">Всего дней</span><span id="days-total" class="value">0</span></div>
+        <div class="stat"><span class="label">Всего часов</span><span id="hours-total" class="value">0</span></div>
+        <div class="stat"><span class="label">Всего минут</span><span id="minutes-total" class="value">0</span></div>
+        <div class="stat"><span class="label">Всего секунд</span><span id="seconds-total" class="value">0</span></div>
+        
+        <div class="heart">❤️</div>
+    </div>
+
+    <script>
+        // Укажи здесь точную дату (год, месяц-1, день, час, минута)
+        const startDate = new Date(2024, 3, 4, 22, 10, 0); 
+
+        function updateTimer() {
+            const now = new Date();
+            const diff = now - startDate;
+
+            // 1. Расчет для общей статистики
+            const totalSecs = Math.floor(diff / 1000);
+            const totalMins = Math.floor(totalSecs / 60);
+            const totalHours = Math.floor(totalMins / 60);
+            const totalDays = Math.floor(totalHours / 24);
+
+            // 2. Расчет для "умной строки" (остатки)
+            const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const h = Math.floor((diff / (1000 * 60 * 60)) % 24);
+            const m = Math.floor((diff / (1000 * 60)) % 60);
+            const s = Math.floor((diff / 1000) % 60);
+
+            // Вывод в умную строку
+            document.getElementById('smart-string').innerText = 
+                `${d} дн. ${h} час. ${m} мин. и ${s} сек.`;
+
+            // Вывод в блоки "всего"
+            document.getElementById('days-total').innerText = totalDays.toLocaleString();
+            document.getElementById('hours-total').innerText = totalHours.toLocaleString();
+            document.getElementById('minutes-total').innerText = totalMins.toLocaleString();
+            document.getElementById('seconds-total').innerText = totalSecs.toLocaleString();
+        }
+
+        setInterval(updateTimer, 1000);
+        updateTimer();
+    </script>
+</body>
+</html>
