@@ -26,13 +26,13 @@
         }
         h1 { color: #ff758f; font-size: 1.4rem; margin-bottom: 1rem; }
         
-        /* Стиль для умной строки */
         .full-string {
             font-style: italic;
             color: #ff4d6d;
             margin-bottom: 20px;
             font-size: 1rem;
             line-height: 1.4;
+            min-height: 3em; /* Чтобы текст не прыгал при обновлении */
         }
 
         .stat {
@@ -40,9 +40,11 @@
             margin: 8px 0;
             padding: 10px;
             border-radius: 12px;
+            display: flex;
+            flex-direction: column;
         }
         .label { font-size: 0.7rem; color: #a0a0a0; display: block; text-transform: uppercase; }
-        .value { font-size: 1.2rem; font-weight: bold; color: #ff4d6d; }
+        .value { font-size: 1.1rem; font-weight: bold; color: #ff4d6d; }
         .heart { font-size: 2rem; color: #ff4d6d; margin-top: 1rem; animation: pulse 1.5s infinite; }
         @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
     </style>
@@ -53,43 +55,85 @@
         
         <div id="smart-string" class="full-string">Загрузка...</div>
 
-        <div class="stat"><span class="label">Всего дней</span><span id="days-total" class="value">0</span></div>
-        <div class="stat"><span class="label">Всего часов</span><span id="hours-total" class="value">0</span></div>
-        <div class="stat"><span class="label">Всего минут</span><span id="minutes-total" class="value">0</span></div>
-        <div class="stat"><span class="label">Всего секунд</span><span id="seconds-total" class="value">0</span></div>
+        <div class="stat"><span id="label-years" class="label">Лет</span><span id="years-total" class="value">0</span></div>
+        <div class="stat"><span id="label-months" class="label">Месяцев</span><span id="months-total" class="value">0</span></div>
+        <div class="stat"><span id="label-days" class="label">Дней</span><span id="days-total" class="value">0</span></div>
+        <div class="stat"><span id="label-hours" class="label">Часов</span><span id="hours-total" class="value">0</span></div>
+        <div class="stat"><span id="label-minutes" class="label">Минут</span><span id="minutes-total" class="value">0</span></div>
+        <div class="stat"><span id="label-seconds" class="label">Секунд</span><span id="seconds-total" class="value">0</span></div>
         
         <div class="heart">❤️</div>
     </div>
 
     <script>
-        // Укажи здесь точную дату (год, месяц-1, день, час, минута)
         const startDate = new Date(2024, 3, 4, 22, 10, 0); 
+
+        function pluralize(value, words) {
+            value = Math.abs(value) % 100;
+            const lastDigit = value % 10;
+            if (value > 10 && value < 20) return words[2];
+            if (lastDigit > 1 && lastDigit < 5) return words[1];
+            if (lastDigit === 1) return words[0];
+            return words[2];
+        }
+
+        const forms = {
+            years: ['год', 'года', 'лет'],
+            months: ['месяц', 'месяца', 'месяцев'],
+            days: ['день', 'дня', 'дней'],
+            hours: ['час', 'часа', 'часов'],
+            minutes: ['минута', 'минуты', 'минут'],
+            seconds: ['секунда', 'секунды', 'секунд']
+        };
 
         function updateTimer() {
             const now = new Date();
-            const diff = now - startDate;
+            
+            let y = now.getFullYear() - startDate.getFullYear();
+            let mon = now.getMonth() - startDate.getMonth();
+            let d = now.getDate() - startDate.getDate();
+            let h = now.getHours() - startDate.getHours();
+            let m = now.getMinutes() - startDate.getMinutes();
+            let s = now.getSeconds() - startDate.getSeconds();
 
-            // 1. Расчет для общей статистики
-            const totalSecs = Math.floor(diff / 1000);
+            if (s < 0) { m--; s += 60; }
+            if (m < 0) { h--; m += 60; }
+            if (h < 0) { d--; h += 24; }
+            if (d < 0) {
+                const prevMonth = new Date(now.getFullYear(), now.getMonth(), 0);
+                d += prevMonth.getDate();
+                mon--;
+            }
+            if (mon < 0) { y--; mon += 12; }
+
+            const smartText = `${y} ${pluralize(y, forms.years)}, ${mon} ${pluralize(mon, forms.months)}, ${d} ${pluralize(d, forms.days)}, ${h} ${pluralize(h, forms.hours)}, ${m} ${pluralize(m, forms.minutes)} и ${s} ${pluralize(s, forms.seconds)}`;
+            document.getElementById('smart-string').innerText = smartText;
+
+            const diffMs = now - startDate;
+            const totalSecs = Math.floor(diffMs / 1000);
             const totalMins = Math.floor(totalSecs / 60);
             const totalHours = Math.floor(totalMins / 60);
             const totalDays = Math.floor(totalHours / 24);
+            const totalMonths = (now.getFullYear() - startDate.getFullYear()) * 12 + (now.getMonth() - startDate.getMonth());
+            const totalYears = Math.floor(totalDays / 365);
 
-            // 2. Расчет для "умной строки" (остатки)
-            const d = Math.floor(diff / (1000 * 60 * 60 * 24));
-            const h = Math.floor((diff / (1000 * 60 * 60)) % 24);
-            const m = Math.floor((diff / (1000 * 60)) % 60);
-            const s = Math.floor((diff / 1000) % 60);
+            document.getElementById('years-total').innerText = totalYears.toLocaleString();
+            document.getElementById('label-years').innerText = "Всего " + pluralize(totalYears, forms.years);
 
-            // Вывод в умную строку
-            document.getElementById('smart-string').innerText = 
-                `${d} дн. ${h} час. ${m} мин. и ${s} сек.`;
+            document.getElementById('months-total').innerText = totalMonths.toLocaleString();
+            document.getElementById('label-months').innerText = "Всего " + pluralize(totalMonths, forms.months);
 
-            // Вывод в блоки "всего"
             document.getElementById('days-total').innerText = totalDays.toLocaleString();
+            document.getElementById('label-days').innerText = "Всего " + pluralize(totalDays, forms.days);
+
             document.getElementById('hours-total').innerText = totalHours.toLocaleString();
+            document.getElementById('label-hours').innerText = "Всего " + pluralize(totalHours, forms.hours);
+
             document.getElementById('minutes-total').innerText = totalMins.toLocaleString();
+            document.getElementById('label-minutes').innerText = "Всего " + pluralize(totalMins, forms.minutes);
+
             document.getElementById('seconds-total').innerText = totalSecs.toLocaleString();
+            document.getElementById('label-seconds').innerText = "Всего " + pluralize(totalSecs, forms.seconds);
         }
 
         setInterval(updateTimer, 1000);
